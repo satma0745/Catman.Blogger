@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Catman.Blogger.WebUI": {
+      "commandName": "Project",
+      "dotnetRunMessages": "true",
+      "applicationUrl": "http://localhost:5000"
+    }
+  }
+}
