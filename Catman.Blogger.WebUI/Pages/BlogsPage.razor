@@ -1,0 +1,128 @@
+@page "/blogs"
+
+@using Catman.Blogger.Persistence.UnitOfWork
+@using Catman.Blogger.Persistence.Repositories.Blog.Data
+
+@inject UnitOfWorkFactory _unitOfWorkFactory
+
+<h1>Blogs</h1>
+
+@if (_blogsLoaded)
+{
+    @if (!_blogs.Any())
+    {
+        <p>There are no blogs yet. Try creating one!</p>
+    }
+    
+    @foreach (var blog in _blogs)
+    {
+        <div class="card my-3">
+            <div class="card-body">
+                <h5 class="card-title">@blog.Title</h5>
+                <h6 class="card-subtitle text-muted">@blog.Id</h6>
+                
+                <p class="card-text">@blog.Description</p>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => DeleteBlogAsync(blog.Id))">
+                        @if (_deletingBlog && blog.Id == _blogIdToDelete)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                        }
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="spinner-border"></div>
+}
+
+<EditForm Model="@_blogToCreate" OnValidSubmit="@CreateBlogAsync">
+    <div class="mb-3">
+        <label class="form-label">
+            Title
+            <InputText @bind-Value="@_blogToCreate.Title" class="form-control" />
+        </label>
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">
+            Description
+            <InputTextArea @bind-Value="@_blogToCreate.Description" class="form-control" />
+        </label>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">
+        @if (_creatingBlog)
+        {
+            <span class="spinner-border spinner-border-sm"></span>
+        }
+        Create blog
+    </button>
+</EditForm>
+
+@code
+{
+    private bool _blogsLoaded;
+    private ICollection<BlogData> _blogs;
+
+    private BlogCreationData _blogToCreate = new BlogCreationData();
+    private bool _creatingBlog;
+
+    private Guid _blogIdToDelete;
+    private bool _deletingBlog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBlogsAsync();
+    }
+
+    private async Task LoadBlogsAsync()
+    {
+        _blogsLoaded = false;
+        StateHasChanged();
+        
+        using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
+        _blogs = await unitOfWork.Blogs.GetBlogsAsync();
+        
+        _blogsLoaded = true;
+        StateHasChanged();
+    }
+
+    private async Task CreateBlogAsync()
+    {
+        _creatingBlog = true;
+        StateHasChanged();
+        
+        using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
+        
+        await unitOfWork.Blogs.CreateBlogAsync(_blogToCreate);
+        await unitOfWork.CommitAsync();
+        
+        _creatingBlog = false;
+        StateHasChanged();
+
+        await LoadBlogsAsync();
+    }
+
+    private async Task DeleteBlogAsync(Guid blogId)
+    {
+        _blogIdToDelete = blogId;
+        _deletingBlog = true;
+        StateHasChanged();
+        
+        using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
+        
+        await unitOfWork.Blogs.DeleteBlogAsync(blogId);
+        await unitOfWork.CommitAsync();
+        
+        _deletingBlog = false;
+        StateHasChanged();
+
+        await LoadBlogsAsync();
+    }
+}

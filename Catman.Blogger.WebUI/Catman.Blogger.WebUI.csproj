@@ -7,6 +7,11 @@
   <ItemGroup>
     <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
     <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
+    <_ContentIncludedByDefault Remove="Shared\Blog\BlogDetails.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Catman.Blogger.Persistence\Catman.Blogger.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
