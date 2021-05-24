@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catman.Blogger.WebUI", "Cat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catman.Blogger.Persistence", "Catman.Blogger.Persistence\Catman.Blogger.Persistence.csproj", "{3498F007-5F96-402E-8425-884DF7C5497B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catman.Blogger.Persistence.Migrator", "Catman.Blogger.Persistence.Migrator\Catman.Blogger.Persistence.Migrator.csproj", "{41D0486B-A737-4C5F-88A5-F5ED177BC902}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,17 @@ Global
 		{3498F007-5F96-402E-8425-884DF7C5497B}.Release|x64.Build.0 = Release|Any CPU
 		{3498F007-5F96-402E-8425-884DF7C5497B}.Release|x86.ActiveCfg = Release|Any CPU
 		{3498F007-5F96-402E-8425-884DF7C5497B}.Release|x86.Build.0 = Release|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Debug|x64.Build.0 = Debug|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Debug|x86.Build.0 = Debug|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|x64.ActiveCfg = Release|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|x64.Build.0 = Release|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|x86.ActiveCfg = Release|Any CPU
+		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
