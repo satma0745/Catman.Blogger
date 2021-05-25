@@ -6,9 +6,12 @@
 
     <ItemGroup>
       <PackageReference Include="Dapper" Version="2.0.90" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="2.0.1" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
       <PackageReference Include="Npgsql" Version="5.0.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Catman.Blogger.Core\Catman.Blogger.Core.csproj" />
     </ItemGroup>
 
 </Project>

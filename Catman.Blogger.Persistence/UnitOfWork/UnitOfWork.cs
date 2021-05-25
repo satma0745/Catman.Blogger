@@ -1,19 +1,21 @@
 namespace Catman.Blogger.Persistence.UnitOfWork
 {
-    using System;
+    using System.Data;
     using System.Data.Common;
     using System.Threading.Tasks;
-    using Catman.Blogger.Persistence.Repositories.Blog;
+    using Catman.Blogger.Core.Persistence.Repositories.Blog;
+    using Catman.Blogger.Core.Persistence.UnitOfWork;
+    using Catman.Blogger.Persistence.Repositories;
 
-    public class UnitOfWork : IDisposable
+    internal class UnitOfWork : IUnitOfWork
     {
-        public BlogRepository Blogs { get; }
+        public IBlogRepository Blogs { get; }
         
         private readonly DbTransaction _transaction;
         
-        public UnitOfWork(DbConnection connection)
+        public UnitOfWork(IDbConnection connection, DbTransaction transaction)
         {
-            _transaction = connection.BeginTransaction();
+            _transaction = transaction;
 
             Blogs = new BlogRepository(connection, _transaction);
         }
@@ -24,7 +26,7 @@ namespace Catman.Blogger.Persistence.UnitOfWork
         public Task RollbackAsync() =>
             _transaction.RollbackAsync();
 
-        public void Dispose() =>
-            _transaction.Dispose();
+        public ValueTask DisposeAsync() =>
+            _transaction.DisposeAsync();
     }
 }

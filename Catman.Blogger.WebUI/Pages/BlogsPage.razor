@@ -1,9 +1,10 @@
 @page "/blogs"
 
-@using Catman.Blogger.Persistence.UnitOfWork
-@using Catman.Blogger.Persistence.Repositories.Blog.Data
+@using Catman.Blogger.Core.Services.Blog
+@using Catman.Blogger.Core.Services.Blog.Data.Requests
+@using Catman.Blogger.Core.Services.Blog.Data.Responses
 
-@inject UnitOfWorkFactory _unitOfWorkFactory
+@inject IBlogService _service;
 
 <h1>Blogs</h1>
 
@@ -68,9 +69,9 @@ else
 @code
 {
     private bool _blogsLoaded;
-    private ICollection<BlogData> _blogs;
+    private ICollection<Blog> _blogs;
 
-    private BlogCreationData _blogToCreate = new BlogCreationData();
+    private readonly CreateBlog _blogToCreate = new CreateBlog();
     private bool _creatingBlog;
 
     private Guid _blogIdToDelete;
@@ -86,8 +87,8 @@ else
         _blogsLoaded = false;
         StateHasChanged();
         
-        using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-        _blogs = await unitOfWork.Blogs.GetBlogsAsync();
+        var result = await _service.GetBlogs();
+        _blogs = result.Select(blogs => blogs, _ => throw new Exception("Error occurred while loading blogs"));
         
         _blogsLoaded = true;
         StateHasChanged();
@@ -98,10 +99,8 @@ else
         _creatingBlog = true;
         StateHasChanged();
         
-        using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-        
-        await unitOfWork.Blogs.CreateBlogAsync(_blogToCreate);
-        await unitOfWork.CommitAsync();
+        var result = await _service.CreateBlog(_blogToCreate);
+        result.Select(x => x, _ => throw new Exception("Error occured while creating blog"));
         
         _creatingBlog = false;
         StateHasChanged();
@@ -115,10 +114,8 @@ else
         _deletingBlog = true;
         StateHasChanged();
         
-        using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-        
-        await unitOfWork.Blogs.DeleteBlogAsync(blogId);
-        await unitOfWork.CommitAsync();
+        var result = await _service.DeleteBlog(blogId);
+        result.Select(x => x, _ => throw new Exception("Error occurred while deleting blog"));
         
         _deletingBlog = false;
         StateHasChanged();

@@ -3,24 +3,26 @@ namespace Catman.Blogger.Persistence.UnitOfWork
     using System.Data;
     using System.Data.Common;
     using System.Threading.Tasks;
+    using Catman.Blogger.Core.Persistence.UnitOfWork;
 
-    public class UnitOfWorkFactory
+    internal class UnitOfWorkAsyncFactory : IUnitOfWorkAsyncFactory
     {
         private readonly DbConnection _connection;
 
-        public UnitOfWorkFactory(DbConnection connection)
+        public UnitOfWorkAsyncFactory(DbConnection connection)
         {
             _connection = connection;
         }
 
-        public async Task<UnitOfWork> CreateAsync()
+        public async Task<IUnitOfWork> CreateAsync()
         {
             if (_connection.State == ConnectionState.Closed)
             {
                 await _connection.OpenAsync();
             }
 
-            return new UnitOfWork(_connection);
+            var transaction = await _connection.BeginTransactionAsync();
+            return new UnitOfWork(_connection, transaction);
         }
     }
 }

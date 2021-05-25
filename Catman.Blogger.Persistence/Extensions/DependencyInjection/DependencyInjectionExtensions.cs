@@ -1,6 +1,7 @@
 namespace Catman.Blogger.Persistence.Extensions.DependencyInjection
 {
     using System.Data.Common;
+    using Catman.Blogger.Core.Persistence.UnitOfWork;
     using Catman.Blogger.Persistence.UnitOfWork;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,7 @@ namespace Catman.Blogger.Persistence.Extensions.DependencyInjection
             
             return services
                 .AddScoped<DbConnection>(_ => new NpgsqlConnection(connectionString))
-                .AddScoped<UnitOfWorkFactory>();
+                .AddScoped<IUnitOfWorkAsyncFactory, UnitOfWorkAsyncFactory>();
         }
     }
 }

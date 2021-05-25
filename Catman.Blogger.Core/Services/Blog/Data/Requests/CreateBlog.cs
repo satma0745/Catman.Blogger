@@ -1,6 +1,6 @@
-namespace Catman.Blogger.Persistence.Repositories.Blog.Data
+namespace Catman.Blogger.Core.Services.Blog.Data.Requests
 {
-    public class BlogCreationData
+    public class CreateBlog
     {
         public string Title { get; set; }
         

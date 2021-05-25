@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catman.Blogger.Persistence"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catman.Blogger.Persistence.Migrator", "Catman.Blogger.Persistence.Migrator\Catman.Blogger.Persistence.Migrator.csproj", "{41D0486B-A737-4C5F-88A5-F5ED177BC902}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catman.Blogger.Core", "Catman.Blogger.Core\Catman.Blogger.Core.csproj", "{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,5 +60,17 @@ Global
 		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|x64.Build.0 = Release|Any CPU
 		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|x86.ActiveCfg = Release|Any CPU
 		{41D0486B-A737-4C5F-88A5-F5ED177BC902}.Release|x86.Build.0 = Release|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Debug|x64.Build.0 = Debug|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Debug|x86.Build.0 = Debug|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Release|x64.ActiveCfg = Release|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Release|x64.Build.0 = Release|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Release|x86.ActiveCfg = Release|Any CPU
+		{653025BF-AC68-4174-BD1C-4FDCF0D34EAA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
