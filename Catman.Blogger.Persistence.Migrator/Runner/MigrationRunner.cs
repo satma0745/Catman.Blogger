@@ -29,25 +29,37 @@ namespace Catman.Blogger.Persistence.Migrator.Runner
 
             var currentMigrationIndex = appliedMigrations.LastOrDefault()?.Index ?? -1;
             var desiredMigrationIndex = migrationIndex ?? possibleMigrations.Last().Info.Index;
-            if (currentMigrationIndex < desiredMigrationIndex)
-            {
-                var migrationsToApply = possibleMigrations
-                    .Where(migration => migration.Info.Index > currentMigrationIndex &&
-                                        migration.Info.Index <= desiredMigrationIndex);
 
-                await MigrateUpAsync(migrationsToApply);
-            }
-            else if (currentMigrationIndex > desiredMigrationIndex)
+            try
             {
-                var migrationsToUndo = possibleMigrations
-                    .Where(migration => migration.Info.Index <= currentMigrationIndex &&
-                                        migration.Info.Index > desiredMigrationIndex)
-                    .OrderByDescending(migration => migration.Info.Index);
+                if (currentMigrationIndex < desiredMigrationIndex)
+                {
+                    var migrationsToApply = possibleMigrations
+                        .Where(migration => migration.Info.Index > currentMigrationIndex &&
+                                            migration.Info.Index <= desiredMigrationIndex);
 
-                await MigrateDownAsync(migrationsToUndo);
+                    await MigrateUpAsync(migrationsToApply);
+                    Console.WriteLine("Migration completed successfully.");
+                }
+                else if (currentMigrationIndex > desiredMigrationIndex)
+                {
+                    var migrationsToUndo = possibleMigrations
+                        .Where(migration => migration.Info.Index <= currentMigrationIndex &&
+                                            migration.Info.Index > desiredMigrationIndex)
+                        .OrderByDescending(migration => migration.Info.Index);
+
+                    await MigrateDownAsync(migrationsToUndo);
+                    Console.WriteLine("Migration completed successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Migration is not required.");
+                }
             }
-            
-            Console.WriteLine("Migration completed successfully.");
+            catch (Exception)
+            {
+                Console.WriteLine("Migration failed.");
+            }
         }
 
         private static ICollection<(IMigrationInfo Info, IMigration Migration)> GetMigrations()
@@ -85,7 +97,7 @@ namespace Catman.Blogger.Persistence.Migrator.Runner
             var historyExistsSql = @"SELECT EXISTS(
                                          SELECT 1
                                          FROM information_schema.tables
-                                         WHERE table_name = 'migrations_history'
+                                         WHERE table_name = 'migration_history'
                                      )";
             var historyExists = await _connection.ExecuteScalarAsync<bool>(historyExistsSql);
 
@@ -94,7 +106,7 @@ namespace Catman.Blogger.Persistence.Migrator.Runner
                 return Enumerable.Empty<IMigrationInfo>().ToArray();
             }
 
-            var getAppliedMigrationsSql = @"SELECT index, description FROM migrations_history";
+            var getAppliedMigrationsSql = @"SELECT index, description FROM migration_history";
             var appliedMigrations = await _connection.QueryAsync<MigrationInfo>(getAppliedMigrationsSql);
 
             return appliedMigrations.Cast<IMigrationInfo>().ToList();
@@ -137,58 +149,66 @@ namespace Catman.Blogger.Persistence.Migrator.Runner
         
         private async Task MigrateUpAsync(IEnumerable<(IMigrationInfo Info, IMigration Migration)> migrationsToApply)
         {
-            foreach (var (migrationInfo, migration) in migrationsToApply)
+            await using var transaction = await _connection.BeginTransactionAsync();
+            
+            try
             {
-                Console.WriteLine($"Applying migration: #{migrationInfo.Index} \"{migrationInfo.Description}\".");
-
-                await using (var transaction = await _connection.BeginTransactionAsync())
+                foreach (var (migrationInfo, migration) in migrationsToApply)
                 {
-                    try
-                    {
-                        await _connection.ExecuteAsync(migration.Apply, null, transaction);
+                    Console.WriteLine($"Applying migration: #{migrationInfo.Index} \"{migrationInfo.Description}\".");
 
-                        var addToHistorySql = @"INSERT INTO migration_history(index, description)
-                                            VALUES(@Index, @Description)";
-                        await _connection.ExecuteAsync(addToHistorySql, migrationInfo, transaction);
+                    await _connection.ExecuteAsync(migration.Apply, null, transaction);
 
-                        await transaction.CommitAsync();
-                    }
-                    catch (Exception)
-                    {
-                        await transaction.RollbackAsync();
-                    }
+                    var addToHistorySql = @"INSERT INTO migration_history(index, description)
+                                        VALUES(@Index, @Description)";
+                    await _connection.ExecuteAsync(addToHistorySql, migrationInfo, transaction);
+
+                    Console.WriteLine("Operation completed successfully.");
+                    Console.WriteLine();
                 }
-                    
-                Console.WriteLine("Operation completed successfully.");
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                        
+                Console.WriteLine("Operation failed.");
                 Console.WriteLine();
+                
+                throw;
             }
         }
 
-        private async Task MigrateDownAsync(IEnumerable<(IMigrationInfo Info, IMigration Migration)> migrationsUndo)
+        private async Task MigrateDownAsync(IEnumerable<(IMigrationInfo Info, IMigration Migration)> migrationsToUndo)
         {
-            foreach (var (migrationInfo, migration) in migrationsUndo)
+            await using var transaction = await _connection.BeginTransactionAsync();
+            
+            try
             {
-                Console.WriteLine($"Undoing migration: #{migrationInfo.Index} \"{migrationInfo.Description}\".");
-
-                await using (var transaction = await _connection.BeginTransactionAsync())
+                foreach (var (migrationInfo, migration) in migrationsToUndo)
                 {
-                    try
-                    {
-                        await _connection.ExecuteAsync(migration.Undo, null, transaction);
+                    Console.WriteLine($"Undoing migration: #{migrationInfo.Index} \"{migrationInfo.Description}\".");
 
-                        var deleteFomHistorySql = @"DELETE FROM migration_history WHERE index = @Index";
-                        await _connection.ExecuteAsync(deleteFomHistorySql, migrationInfo, transaction);
-                    
-                        await transaction.CommitAsync();
-                    }
-                    catch (Exception)
-                    {
-                        await transaction.RollbackAsync();
-                    }
+                    await _connection.ExecuteAsync(migration.Undo, null, transaction);
+
+                    var deleteFomHistorySql = @"DELETE FROM migration_history WHERE index = @Index";
+                    await _connection.ExecuteAsync(deleteFomHistorySql, migrationInfo, transaction);
+
+                    Console.WriteLine("Operation completed successfully.");
+                    Console.WriteLine();
                 }
-                    
-                Console.WriteLine("Operation completed successfully.");
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                        
+                Console.WriteLine("Operation failed.");
                 Console.WriteLine();
+                
+                throw;
             }
         }
     }
