@@ -3,19 +3,20 @@
 @using Catman.Blogger.Core.Services.Blog
 @using Catman.Blogger.Core.Services.Blog.Data.Requests
 @using Catman.Blogger.Core.Services.Blog.Data.Responses
+@using Catman.Blogger.WebUI.Data.Loadable
+@using Catman.Blogger.WebUI.Shared.Common
 
 @inject IBlogService _service;
 
 <h1>Blogs</h1>
 
-@if (_blogsLoaded)
-{
-    @if (!_blogs.Any())
+<Loadable IsLoaded="@_blogs.IsLoaded">
+    @if (!_blogs.Value.Any())
     {
         <p>There are no blogs yet. Try creating one!</p>
     }
     
-    @foreach (var blog in _blogs)
+    @foreach (var blog in _blogs.Value)
     {
         <div class="card my-3">
             <div class="card-body">
@@ -36,11 +37,7 @@
             </div>
         </div>
     }
-}
-else
-{
-    <div class="spinner-border"></div>
-}
+</Loadable>
 
 <EditForm Model="@_blogToCreate" OnValidSubmit="@CreateBlogAsync">
     <div class="mb-3">
@@ -68,8 +65,7 @@ else
 
 @code
 {
-    private bool _blogsLoaded;
-    private ICollection<Blog> _blogs;
+    private readonly ILoadable<ICollection<Blog>> _blogs = new Loadable<ICollection<Blog>>();
 
     private readonly CreateBlog _blogToCreate = new CreateBlog();
     private bool _creatingBlog;
@@ -84,14 +80,9 @@ else
 
     private async Task LoadBlogsAsync()
     {
-        _blogsLoaded = false;
-        StateHasChanged();
-        
         var result = await _service.GetBlogs();
-        _blogs = result.Select(blogs => blogs, _ => throw new Exception("Error occurred while loading blogs"));
-        
-        _blogsLoaded = true;
-        StateHasChanged();
+        var blogs = result.Select(blogs => blogs, _ => throw new Exception("Error occurred while loading blogs"));
+        _blogs.Loaded(blogs);
     }
 
     private async Task CreateBlogAsync()

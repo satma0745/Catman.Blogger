@@ -1,0 +1,17 @@
+@if (IsLoaded)
+{
+    @ChildContent
+}
+else
+{
+    <div class="spinner-border"></div>
+}
+
+@code
+{
+    [Parameter]
+    public bool IsLoaded { get; set; }
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}
