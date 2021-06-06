@@ -19,27 +19,27 @@ namespace Catman.Blogger.Core.Services.Shared.OperationResults
 
     public class OperationResult<TSuccessResponse>
     {
-        private readonly bool _isSuccess;
+        public bool IsSuccess { get; }
 
         private readonly TSuccessResponse _successResponse;
         private readonly IFailureResponse _failureResponse;
 
         public OperationResult(TSuccessResponse successResponse)
         {
-            _isSuccess = true;
+            IsSuccess = true;
             _successResponse = successResponse;
         }
 
         public OperationResult(IFailureResponse failureResponse)
         {
-            _isSuccess = false;
+            IsSuccess = false;
             _failureResponse = failureResponse;
         }
 
         public TSelected Select<TSelected>(
             Func<TSuccessResponse, TSelected> onSuccess,
             Func<IFailureResponse, TSelected> onFailure) =>
-            _isSuccess
+            IsSuccess
                 ? onSuccess(_successResponse)
                 : onFailure(_failureResponse);
     }

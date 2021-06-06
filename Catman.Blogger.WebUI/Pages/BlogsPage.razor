@@ -1,22 +1,20 @@
 @page "/blogs"
 
-@using Catman.Blogger.Core.Services.Blog
 @using Catman.Blogger.Core.Services.Blog.Data.Requests
-@using Catman.Blogger.Core.Services.Blog.Data.Responses
-@using Catman.Blogger.WebUI.Data.Loadable
+@using Catman.Blogger.WebUI.Data.Blog
 @using Catman.Blogger.WebUI.Shared.Common
 
-@inject IBlogService _service;
+@inject IBlogStorage _storage;
 
 <h1>Blogs</h1>
 
-<Loadable IsLoaded="@_blogs.IsLoaded">
-    @if (!_blogs.Value.Any())
+<Loadable IsLoaded="@_storage.Blogs.IsLoaded">
+    @if (!_storage.Blogs.Value.Any())
     {
         <p>There are no blogs yet. Try creating one!</p>
     }
     
-    @foreach (var blog in _blogs.Value)
+    @foreach (var blog in _storage.Blogs.Value)
     {
         <div class="card my-3">
             <div class="card-body">
@@ -26,8 +24,8 @@
                 <p class="card-text">@blog.Description</p>
                 
                 <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => DeleteBlogAsync(blog.Id))">
-                        @if (_deletingBlog && blog.Id == _blogIdToDelete)
+                    <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => _storage.DeleteBlog(blog.Id))">
+                        @if (_storage.DeletingBlog && blog.Id == _storage.BlogIdToDelete)
                         {
                             <span class="spinner-border spinner-border-sm"></span>
                         }
@@ -39,7 +37,7 @@
     }
 </Loadable>
 
-<EditForm Model="@_blogToCreate" OnValidSubmit="@CreateBlogAsync">
+<EditForm Model="@_blogToCreate" OnValidSubmit="@(() => _storage.CreateBlog(_blogToCreate))">
     <div class="mb-3">
         <label class="form-label">
             Title
@@ -55,7 +53,7 @@
     </div>
     
     <button type="submit" class="btn btn-primary">
-        @if (_creatingBlog)
+        @if (_storage.CreatingBlog)
         {
             <span class="spinner-border spinner-border-sm"></span>
         }
@@ -65,56 +63,16 @@
 
 @code
 {
-    private readonly ILoadable<ICollection<Blog>> _blogs = new Loadable<ICollection<Blog>>();
-
     private readonly CreateBlog _blogToCreate = new CreateBlog();
-    private bool _creatingBlog;
-
-    private Guid _blogIdToDelete;
-    private bool _deletingBlog;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadBlogsAsync();
+        _storage.OnChange += StateHasChanged;
+        await _storage.Initialize();
     }
 
-    private async Task LoadBlogsAsync()
+    public void Dispose()
     {
-        _blogs.Unload();
-        StateHasChanged();
-    
-        var result = await _service.GetBlogs();
-        var blogs = result.Select(blogs => blogs, _ => throw new Exception("Error occurred while loading blogs"));
-        
-        _blogs.Loaded(blogs);
-    }
-
-    private async Task CreateBlogAsync()
-    {
-        _creatingBlog = true;
-        StateHasChanged();
-        
-        var result = await _service.CreateBlog(_blogToCreate);
-        result.Select(x => x, _ => throw new Exception("Error occured while creating blog"));
-        
-        _creatingBlog = false;
-        StateHasChanged();
-
-        await LoadBlogsAsync();
-    }
-
-    private async Task DeleteBlogAsync(Guid blogId)
-    {
-        _blogIdToDelete = blogId;
-        _deletingBlog = true;
-        StateHasChanged();
-        
-        var result = await _service.DeleteBlog(blogId);
-        result.Select(x => x, _ => throw new Exception("Error occurred while deleting blog"));
-        
-        _deletingBlog = false;
-        StateHasChanged();
-
-        await LoadBlogsAsync();
+        _storage.OnChange -= StateHasChanged;
     }
 }

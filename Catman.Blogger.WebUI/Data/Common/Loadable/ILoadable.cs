@@ -1,4 +1,4 @@
-namespace Catman.Blogger.WebUI.Data.Loadable
+namespace Catman.Blogger.WebUI.Data.Common.Loadable
 {
     internal interface ILoadable<T>
     {

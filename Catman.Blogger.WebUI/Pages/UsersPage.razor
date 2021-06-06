@@ -1,22 +1,20 @@
 @page "/users"
 
-@using Catman.Blogger.Core.Services.User
 @using Catman.Blogger.Core.Services.User.Data.Requests
-@using Catman.Blogger.Core.Services.User.Data.Responses
-@using Catman.Blogger.WebUI.Data.Loadable
+@using Catman.Blogger.WebUI.Data.User
 @using Catman.Blogger.WebUI.Shared.Common
 
-@inject IUserService _service;
+@inject IUserStorage _storage;
 
 <h1>Users</h1>
 
-<Loadable IsLoaded="@_users.IsLoaded">
-    @if (!_users.Value.Any())
+<Loadable IsLoaded="@_storage.Users.IsLoaded">
+    @if (!_storage.Users.Value.Any())
     {
         <p>There are no users yet. Try registering one!</p>
     }
     
-    @foreach (var user in _users.Value)
+    @foreach (var user in _storage.Users.Value)
     {
         <div class="card my-3">
             <div class="card-body">
@@ -26,8 +24,8 @@
                 <p class="card-text">@user.DisplayName</p>
                 
                 <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => DeleteUserAsync(user.Id))">
-                        @if (_deletingUser && user.Id == _userIdToDelete)
+                    <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => _storage.DeleteUser(user.Id))">
+                        @if (_storage.DeletingUser && user.Id == _storage.UserIdToDelete)
                         {
                             <span class="spinner-border spinner-border-sm"></span>
                         }
@@ -39,7 +37,7 @@
     }
 </Loadable>
 
-<EditForm Model="@_userToRegister" OnValidSubmit="@RegisterUserAsync">
+<EditForm Model="@_userToRegister" OnValidSubmit="@(() => _storage.RegisterUser(_userToRegister))">
     <div class="mb-3">
         <label class="form-label">
             Username
@@ -62,7 +60,7 @@
     </div>
     
     <button type="submit" class="btn btn-primary">
-        @if (_registeringUser)
+        @if (_storage.RegisteringUser)
         {
             <span class="spinner-border spinner-border-sm"></span>
         }
@@ -72,56 +70,16 @@
 
 @code
 {
-    private readonly ILoadable<ICollection<User>> _users = new Loadable<ICollection<User>>();
-
     private readonly RegisterUser _userToRegister = new RegisterUser();
-    private bool _registeringUser;
-
-    private Guid _userIdToDelete;
-    private bool _deletingUser;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUsersAsync();
+        _storage.OnChange += StateHasChanged;
+        await _storage.Initialize();
     }
 
-    private async Task LoadUsersAsync()
+    public void Dispose()
     {
-        _users.Unload();
-        StateHasChanged();
-        
-        var result = await _service.GetUsers();
-        var users = result.Select(users => users, _ => throw new Exception("Error occurred while loading users"));
-        
-        _users.Loaded(users);
-    }
-
-    private async Task RegisterUserAsync()
-    {
-        _registeringUser = true;
-        StateHasChanged();
-        
-        var result = await _service.RegisterUser(_userToRegister);
-        result.Select(x => x, _ => throw new Exception("Error occured while registering user"));
-        
-        _registeringUser = false;
-        StateHasChanged();
-
-        await LoadUsersAsync();
-    }
-
-    private async Task DeleteUserAsync(Guid userId)
-    {
-        _userIdToDelete = userId;
-        _deletingUser = true;
-        StateHasChanged();
-        
-        var result = await _service.DeleteUser(userId);
-        result.Select(x => x, _ => throw new Exception("Error occurred while deleting user"));
-        
-        _deletingUser = false;
-        StateHasChanged();
-
-        await LoadUsersAsync();
+        _storage.OnChange -= StateHasChanged;
     }
 }
