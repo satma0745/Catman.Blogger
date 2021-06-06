@@ -8,6 +8,12 @@ namespace Catman.Blogger.WebUI.Data.Loadable
 
         public T Value { get; private set; }
 
+        public void Unload()
+        {
+            IsLoaded = false;
+            Value = default;
+        }
+        
         public void Loaded(T value)
         {
             if (IsLoaded)

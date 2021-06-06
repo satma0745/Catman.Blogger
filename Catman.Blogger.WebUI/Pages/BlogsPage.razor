@@ -80,8 +80,12 @@
 
     private async Task LoadBlogsAsync()
     {
+        _blogs.Unload();
+        StateHasChanged();
+    
         var result = await _service.GetBlogs();
         var blogs = result.Select(blogs => blogs, _ => throw new Exception("Error occurred while loading blogs"));
+        
         _blogs.Loaded(blogs);
     }
 

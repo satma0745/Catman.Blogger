@@ -6,6 +6,8 @@ namespace Catman.Blogger.WebUI.Data.Loadable
         
         T Value { get; }
 
+        void Unload();
+
         void Loaded(T value);
     }
 }
