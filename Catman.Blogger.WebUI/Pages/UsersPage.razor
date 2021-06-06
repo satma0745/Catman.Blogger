@@ -1,0 +1,127 @@
+@page "/users"
+
+@using Catman.Blogger.Core.Services.User
+@using Catman.Blogger.Core.Services.User.Data.Requests
+@using Catman.Blogger.Core.Services.User.Data.Responses
+@using Catman.Blogger.WebUI.Data.Loadable
+@using Catman.Blogger.WebUI.Shared.Common
+
+@inject IUserService _service;
+
+<h1>Users</h1>
+
+<Loadable IsLoaded="@_users.IsLoaded">
+    @if (!_users.Value.Any())
+    {
+        <p>There are no users yet. Try registering one!</p>
+    }
+    
+    @foreach (var user in _users.Value)
+    {
+        <div class="card my-3">
+            <div class="card-body">
+                <h5 class="card-title">@user.Username</h5>
+                <h6 class="card-subtitle text-muted">@user.Id</h6>
+                
+                <p class="card-text">@user.DisplayName</p>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => DeleteUserAsync(user.Id))">
+                        @if (_deletingUser && user.Id == _userIdToDelete)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                        }
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</Loadable>
+
+<EditForm Model="@_userToRegister" OnValidSubmit="@RegisterUserAsync">
+    <div class="mb-3">
+        <label class="form-label">
+            Username
+            <InputText @bind-Value="@_userToRegister.Username" class="form-control" />
+        </label>
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">
+            Password
+            <InputText @bind-Value="@_userToRegister.Password" class="form-control" />
+        </label>
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">
+            Display name
+            <InputText @bind-Value="@_userToRegister.DisplayName" class="form-control" />
+        </label>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">
+        @if (_registeringUser)
+        {
+            <span class="spinner-border spinner-border-sm"></span>
+        }
+        Register user
+    </button>
+</EditForm>
+
+@code
+{
+    private readonly ILoadable<ICollection<User>> _users = new Loadable<ICollection<User>>();
+
+    private readonly RegisterUser _userToRegister = new RegisterUser();
+    private bool _registeringUser;
+
+    private Guid _userIdToDelete;
+    private bool _deletingUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _users.Unload();
+        StateHasChanged();
+        
+        var result = await _service.GetUsers();
+        var users = result.Select(users => users, _ => throw new Exception("Error occurred while loading users"));
+        
+        _users.Loaded(users);
+    }
+
+    private async Task RegisterUserAsync()
+    {
+        _registeringUser = true;
+        StateHasChanged();
+        
+        var result = await _service.RegisterUser(_userToRegister);
+        result.Select(x => x, _ => throw new Exception("Error occured while registering user"));
+        
+        _registeringUser = false;
+        StateHasChanged();
+
+        await LoadUsersAsync();
+    }
+
+    private async Task DeleteUserAsync(Guid userId)
+    {
+        _userIdToDelete = userId;
+        _deletingUser = true;
+        StateHasChanged();
+        
+        var result = await _service.DeleteUser(userId);
+        result.Select(x => x, _ => throw new Exception("Error occurred while deleting user"));
+        
+        _deletingUser = false;
+        StateHasChanged();
+
+        await LoadUsersAsync();
+    }
+}

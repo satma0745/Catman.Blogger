@@ -2,6 +2,20 @@ namespace Catman.Blogger.Core.Services.Shared.OperationResults
 {
     using System;
     using Catman.Blogger.Core.Services.Shared.Responses.Failure;
+    using Catman.Blogger.Core.Services.Shared.Responses.Success;
+
+    public class OperationResult : OperationResult<OperationSuccess>
+    {
+        public OperationResult()
+            : base(new OperationSuccess())
+        {
+        }
+
+        public OperationResult(IFailureResponse failureResponse)
+            : base(failureResponse)
+        {
+        }
+    }
 
     public class OperationResult<TSuccessResponse>
     {
