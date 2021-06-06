@@ -14,38 +14,25 @@ namespace Catman.Blogger.Core.Services.User
 
     internal class UserService : ServiceBase, IUserService
     {
-        private readonly IUnitOfWorkAsyncFactory _unitOfWorkFactory;
         private readonly IMapper _mapper;
 
         public UserService(IUnitOfWorkAsyncFactory unitOfWorkFactory, IMapper mapper)
+            : base(unitOfWorkFactory)
         {
-            _unitOfWorkFactory = unitOfWorkFactory;
             _mapper = mapper;
         }
         
-        public async Task<OperationResult<ICollection<User>>> GetUsers()
-        {
-            await using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-
-            try
+        public Task<OperationResult<ICollection<User>>> GetUsers() =>
+            Operation(async unitOfWork =>
             {
                 var users = await unitOfWork.Users.GetUsersAsync();
 
                 var response = _mapper.Map<ICollection<User>>(users);
                 return Success(response);
-            }
-            catch (Exception exception)
-            {
-                var response = new UnexpectedFailure(exception);
-                return Failure<ICollection<User>>(response);
-            }
-        }
+            });
 
-        public async Task<OperationResult> RegisterUser(RegisterUser request)
-        {
-            await using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-
-            try
+        public Task<OperationResult> RegisterUser(RegisterUser request) =>
+            Operation(async unitOfWork =>
             {
                 if (!await unitOfWork.Users.UsernameIsAvailableAsync(request.Username))
                 {
@@ -55,43 +42,21 @@ namespace Catman.Blogger.Core.Services.User
 
                 var creationData = _mapper.Map<UserCreationData>(request);
                 await unitOfWork.Users.CreateUserAsync(creationData);
-                await unitOfWork.CommitAsync();
 
                 return Success();
-            }
-            catch (Exception exception)
-            {
-                await unitOfWork.RollbackAsync();
-                
-                var response = new UnexpectedFailure(exception);
-                return Failure(response);
-            }
-        }
+            });
 
-        public async Task<OperationResult> DeleteUser(Guid id)
-        {
-            await using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-
-            try
+        public Task<OperationResult> DeleteUser(Guid userId) =>
+            Operation(async unitOfWork =>
             {
-                if (!await unitOfWork.Users.UserExistsAsync(id))
+                if (!await unitOfWork.Users.UserExistsAsync(userId))
                 {
                     var failure = new NotFoundFailure();
                     return Failure(failure);
                 }
 
-                await unitOfWork.Users.DeleteUserAsync(id);
-                await unitOfWork.CommitAsync();
-
+                await unitOfWork.Users.DeleteUserAsync(userId);
                 return Success();
-            }
-            catch (Exception exception)
-            {
-                await unitOfWork.RollbackAsync();
-                
-                var response = new UnexpectedFailure(exception);
-                return Failure(response);
-            }
-        }
+            });
     }
 }

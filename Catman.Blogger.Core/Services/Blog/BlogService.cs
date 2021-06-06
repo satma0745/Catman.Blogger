@@ -14,38 +14,25 @@ namespace Catman.Blogger.Core.Services.Blog
 
     internal class BlogService : ServiceBase, IBlogService
     {
-        private readonly IUnitOfWorkAsyncFactory _unitOfWorkFactory;
         private readonly IMapper _mapper;
 
         public BlogService(IUnitOfWorkAsyncFactory unitOfWorkFactory, IMapper mapper)
+            : base(unitOfWorkFactory)
         {
-            _unitOfWorkFactory = unitOfWorkFactory;
             _mapper = mapper;
         }
         
-        public async Task<OperationResult<ICollection<Blog>>> GetBlogs()
-        {
-            await using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-
-            try
+        public Task<OperationResult<ICollection<Blog>>> GetBlogs() =>
+            Operation(async unitOfWork =>
             {
                 var blogs = await unitOfWork.Blogs.GetBlogsAsync();
 
                 var response = _mapper.Map<ICollection<Blog>>(blogs);
                 return Success(response);
-            }
-            catch (Exception exception)
-            {
-                var response = new UnexpectedFailure(exception);
-                return Failure<ICollection<Blog>>(response);
-            }
-        }
+            });
 
-        public async Task<OperationResult<Blog>> CreateBlog(CreateBlog request)
-        {
-            await using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-
-            try
+        public Task<OperationResult<Blog>> CreateBlog(CreateBlog request) =>
+            Operation(async unitOfWork =>
             {
                 if (!await unitOfWork.Blogs.TitleIsAvailableAsync(request.Title))
                 {
@@ -55,28 +42,14 @@ namespace Catman.Blogger.Core.Services.Blog
 
                 var creationData = _mapper.Map<BlogCreationData>(request);
                 var blogId = await unitOfWork.Blogs.CreateBlogAsync(creationData);
-
                 var blogData = await unitOfWork.Blogs.GetBlogAsync(blogId);
-
-                await unitOfWork.CommitAsync();
 
                 var blog = _mapper.Map<Blog>(blogData);
                 return Success(blog);
-            }
-            catch (Exception exception)
-            {
-                await unitOfWork.RollbackAsync();
+            });
 
-                var response = new UnexpectedFailure(exception);
-                return Failure<Blog>(response);
-            }
-        }
-
-        public async Task<OperationResult> DeleteBlog(Guid blogId)
-        {
-            await using var unitOfWork = await _unitOfWorkFactory.CreateAsync();
-
-            try
+        public Task<OperationResult> DeleteBlog(Guid blogId) =>
+            Operation(async unitOfWork =>
             {
                 if (!await unitOfWork.Blogs.BlogExistsAsync(blogId))
                 {
@@ -85,17 +58,7 @@ namespace Catman.Blogger.Core.Services.Blog
                 }
 
                 await unitOfWork.Blogs.DeleteBlogAsync(blogId);
-                await unitOfWork.CommitAsync();
-
                 return Success();
-            }
-            catch (Exception exception)
-            {
-                await unitOfWork.RollbackAsync();
-                
-                var response = new UnexpectedFailure(exception);
-                return Failure(response);
-            }
-        }
+            });
     }
 }
