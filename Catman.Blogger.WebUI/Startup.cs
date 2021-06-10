@@ -22,17 +22,15 @@ namespace Catman.Blogger.WebUI
         
         public void ConfigureServices(IServiceCollection services) =>
             services
-                .AddAutoMapper(typeof(IUnitOfWork), typeof(IResponse))
+                .AddAutoMapper(typeof(IUnitOfWork), typeof(IResponse), typeof(Startup))
                 .AddPersistence(_configuration)
                 .AddCore()
                 .AddWebUI();
 
-        public void Configure(IApplicationBuilder application, IWebHostEnvironment environment)
-        {
+        public void Configure(IApplicationBuilder application, IWebHostEnvironment environment) =>
             application
                 .UseStaticFiles()
                 .UseRouting()
                 .UseBlazorEndpoints();
-        }
     }
 }

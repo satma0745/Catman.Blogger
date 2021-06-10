@@ -1,6 +1,7 @@
 namespace Catman.Blogger.WebUI.Extensions.DependencyInjection
 {
     using Catman.Blogger.WebUI.Data.Blog;
+    using Catman.Blogger.WebUI.Data.Session;
     using Catman.Blogger.WebUI.Data.User;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +18,7 @@ namespace Catman.Blogger.WebUI.Extensions.DependencyInjection
         private static IServiceCollection AddStorage(this IServiceCollection services) =>
             services
                 .AddScoped<IBlogStorage, BlogStorage>()
-                .AddScoped<IUserStorage, UserStorage>();
+                .AddScoped<IUserStorage, UserStorage>()
+                .AddScoped<ISessionStorage, SessionStorage>();
     }
 }

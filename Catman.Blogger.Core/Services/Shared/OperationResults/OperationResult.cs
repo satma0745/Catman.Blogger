@@ -42,5 +42,19 @@ namespace Catman.Blogger.Core.Services.Shared.OperationResults
             IsSuccess
                 ? onSuccess(_successResponse)
                 : onFailure(_failureResponse);
+
+        public void Consume(
+            Action<TSuccessResponse> onSuccess,
+            Action<IFailureResponse> onFailure)
+        {
+            if (IsSuccess)
+            {
+                onSuccess(_successResponse);
+            }
+            else
+            {
+                onFailure(_failureResponse);
+            }
+        }
     }
 }

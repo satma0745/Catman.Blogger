@@ -28,10 +28,26 @@ namespace Catman.Blogger.Persistence.Repositories
             return users.ToList();
         }
         
+        public Task<UserData> GetUserAsync(string username)
+        {
+            var sql = "SELECT * FROM users WHERE username = @Username";
+            var parameters = new {Username = username};
+
+            return _connection.QuerySingleAsync<UserData>(sql, parameters, _transaction);
+        }
+
         public Task<bool> UserExistsAsync(Guid userId)
         {
             var sql = "SELECT EXISTS(SELECT 1 FROM users WHERE id = @Id)";
             var parameters = new {Id = userId};
+
+            return _connection.ExecuteScalarAsync<bool>(sql, parameters, _transaction);
+        }
+        
+        public Task<bool> UserExistsAsync(string username)
+        {
+            var sql = "SELECT EXISTS(SELECT 1 FROM users WHERE username = @Username)";
+            var parameters = new {Username = username};
 
             return _connection.ExecuteScalarAsync<bool>(sql, parameters, _transaction);
         }
@@ -58,6 +74,14 @@ namespace Catman.Blogger.Persistence.Repositories
             var parameters = new {Id = userId};
 
             return _connection.ExecuteAsync(sql, parameters, _transaction);
+        }
+
+        public Task<bool> UserHasPasswordAsync(Guid userId, string password)
+        {
+            var sql = "SELECT EXISTS(SELECT 1 FROM users WHERE id = @Id AND password = @Password)";
+            var parameters = new {Id = userId, Password = password};
+
+            return _connection.ExecuteScalarAsync<bool>(sql, parameters, _transaction);
         }
     }
 }

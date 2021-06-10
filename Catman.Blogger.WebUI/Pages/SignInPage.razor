@@ -1,0 +1,46 @@
+@page "/signin"
+
+@using Catman.Blogger.WebUI.Data.Session
+@using Catman.Blogger.Core.Services.Auth.Data.Requests
+
+@inject ISessionStorage _storage
+
+<EditForm Model="@_userInfo" OnValidSubmit="@(() => _storage.SignIn(_userInfo))">
+    <div class="mb-3">
+        <label class="form-label">
+            Username
+            <InputText @bind-Value="@_userInfo.Username" class="form-control" />
+        </label>
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">
+            Password
+            <InputText @bind-Value="@_userInfo.Password" class="form-control" />
+        </label>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">
+        @if (_storage.Loading)
+        {
+            <span class="spinner-border spinner-border-sm"></span>
+        }
+        Sign in
+    </button>
+</EditForm>
+
+@code
+{
+    private readonly AuthenticateUser _userInfo = new AuthenticateUser();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _storage.OnChange += StateHasChanged;
+        await _storage.Initialize();
+    }
+
+    public void Dispose()
+    {
+        _storage.OnChange -= StateHasChanged;
+    }
+}

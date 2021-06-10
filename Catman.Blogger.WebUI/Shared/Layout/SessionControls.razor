@@ -1,0 +1,29 @@
+@using Catman.Blogger.WebUI.Data.Session
+
+@inject ISessionStorage _storage;
+
+@if (_storage.Authorized)
+{
+    <div class="d-flex align-items-center">
+        <p class="me-3 mb-0">Hello, @_storage.DisplayName!</p>
+        <button class="btn btn-sm btn-outline-primary" @onclick="@(() => _storage.SignOut())">Sign Out</button>
+    </div>
+}
+else
+{
+    <a class="btn btn-sm btn-primary" href="/signin">Sign In</a>
+}
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        _storage.OnChange += StateHasChanged;
+        await _storage.Initialize();
+    }
+
+    public void Dispose()
+    {
+        _storage.OnChange -= StateHasChanged;
+    }
+}
